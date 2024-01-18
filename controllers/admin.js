@@ -45,20 +45,19 @@ exports.postEditProduct = (req, res, next) => {
     const imageUrl = req.body.imageUrl;
     const price = req.body.price;
     const description = req.body.description;
-    console.log(id);
     const product = new Product(id, title, imageUrl, description, price);
-    product.save();
-    res.redirect('/admin/products');
+    product.save().then(()=>res.redirect('/admin/products')).catch(e=>console.log(e));
+    
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll(products => {
+  Product.fetchAll().then(([products, fieldData]) => {
     res.render('admin/products', {
       prods: products,
       pageTitle: 'Admin Products',
       path: '/admin/products'
     });
-  });
+  }).catch(e=>console.log(e));
 };
 
 exports.getDeleteProduct = (req, res, next) => {
