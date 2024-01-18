@@ -53,13 +53,13 @@ exports.getCart = (req, res, next) => {
             cartProducts.push({ productData: product, qty: cardProdData.qty });
           }
         }
-        res.render("shop/cart", {
+      res.render("shop/cart", {
           path: "/cart",
           pageTitle: "Your Cart",
           products: cartProducts,
         });
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {console.log(e)});
   });
 };
 
