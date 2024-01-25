@@ -1,5 +1,4 @@
 const Product = require("../models/product");
-const {ObjectId} = require('mongodb');
 
 exports.getAddProduct = (req, res, next) => {
   res.render("admin/add-product", {
@@ -17,7 +16,7 @@ exports.getEditProduct = (req, res, next) => {
     res.redirect("/");
   }
   const prodId = req.params.productId;
-  Product.fetchById(prodId).then((product) => {
+  Product.findById(prodId).then((product) => {
     if (!product) res.redirect("/");
     else {
       res.render("admin/edit-product", {
@@ -35,9 +34,14 @@ exports.postAddProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  console.log(req.user._id, "message");
 
-  const p = new Product(title, description, price, imageUrl, req.user._id);
+  const p = new Product({
+    title: title,
+    description: description,
+    price: price,
+    imageUrl: imageUrl,
+    userId:req.user
+  });
   p.save()
     .then(res.redirect("/"))
     .catch((e) => console.log(e));
@@ -49,17 +53,21 @@ exports.postEditProduct = (req, res, next) => {
   const imageUrl = req.body.imageUrl;
   const price = req.body.price;
   const description = req.body.description;
-  Product.fetchById(id)
-    .then((prodData) => {
-      const product = new Product(title, description,price,imageUrl, req.user._id, id );
-      return product.save();
-    })
+  Product.findById(id)
+    .then((product) => {
+       product.title = title;
+        product.imageUrl = imageUrl;
+        product.price = price;
+        product.description = description;
+        return product.save();
+    }
+    )
     .then(res.redirect("/admin/products"))
     .catch((e) => console.log(e));
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("admin/products", {
         prods: products,
@@ -73,7 +81,7 @@ exports.getProducts = (req, res, next) => {
 exports.getDeleteProduct = (req, res, next) => {
   const prodId = req.params.productId;
   // Product.destory({where: {id:prodId}}).then( res.redirect("/")).catch(e=>console.log(e));
-  Product.deleteById(prodId)
+  Product.findByIdAndDelete(prodId)
     .then(res.redirect("/"))
     .catch((e) => console.log(e));
 };

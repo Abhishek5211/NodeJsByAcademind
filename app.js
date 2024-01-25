@@ -2,7 +2,7 @@ const path = require("path");
 const express = require("express");
 const bodyParser = require("body-parser");
 const User = require("./models/user");
-const { connectDb } = require("./util/mongodb");
+const mongoose = require("mongoose");
 const errorController = require("./controllers/error");
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
@@ -12,18 +12,44 @@ const app = express();
 app.set("view engine", "ejs");
 app.set("views", "views");
 
-connectDb((db) => {
-   app.listen(3000);
-});
-
 app.use((req, res, next) => {
-  User.fetchById("65b174a98a82ab5e8a5b04e3")
+  User.findById("65b2beaef2ec78ea575a41dc")
     .then((user) => {
-      req.user = new User(user.name, user.email, user.cart, user._id);
+      req.user = user;
       next();
     })
     .catch((e) => console.log(e));
 });
+mongoose
+  .connect(
+    "mongodb+srv://loganabhi5211:YhIPDYzYtVWCwNYb@cluster0.oqfthj5.mongodb.net/shop?retryWrites=true&w=majority"
+  )
+  .then(() => {
+    User.findOne().then(user => {
+      if(!user){
+        const user = new User({
+          name:'Deepak Thapa',
+          email:'test@gmail.com',
+          cart:{ items:[]}
+        });
+        user.save();
+      }
+      app.listen(3000);
+    })
+  });
+
+// connectDb((db) => {
+//    app.listen(3000);
+// });
+
+// app.use((req, res, next) => {
+//   User.fetchById("65b174a98a82ab5e8a5b04e3")
+//     .then((user) => {
+//       req.user = new User(user.name, user.email, user.cart, user._id);
+//       next();
+//     })
+//     .catch((e) => console.log(e));
+// });
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));

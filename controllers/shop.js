@@ -1,11 +1,12 @@
 // const Cart = require("../models/cart");
 // const CartItems = require("../models/cart-items");
 const Product = require("../models/product");
+const Order = require("../models/orders");
 // const Order = require("../models/order");
 // const OrderItems = require("../models/order-item");
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/product-list", {
         prods: products,
@@ -17,7 +18,7 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render("shop/index", {
         prods: products,
@@ -37,7 +38,7 @@ exports.getIndex = (req, res, next) => {
 
 exports.postCart = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.fetchById(prodId)
+  Product.findById(prodId)
     .then((prod) => {
       return req.user.addToCart(prod);
     })
@@ -74,12 +75,13 @@ exports.postCart = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   req.user
-    .getCart()
+    .populate('cart.items.productId')
     .then((products) => {
+      console.log(products.cart.items);
       res.render("shop/cart", {
         path: "/cart",
         pageTitle: "Your Cart",
-        products: products,
+        products: products.cart.items,
       });
     })
     .catch((e) => {
@@ -96,8 +98,8 @@ exports.postDeleteCart = (req, res, next) => {
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
+  Order.find({'user.userId':req.user._id})
+    .select('order').populate('order.productId')
     .then((orders) => {
       res.render("shop/orders", {
         path: "/orders",
@@ -106,7 +108,6 @@ exports.getOrders = (req, res, next) => {
       });
     })
     .catch((e) => console.log(e));
-
 };
 
 exports.postOrders = (req, res, next) => {
@@ -151,7 +152,7 @@ exports.getCheckout = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
-  Product.fetchById(prodId)
+  Product.findById(prodId)
     .then((prd) => {
       res.render("shop/product-detail", {
         path: "/product-detail",
